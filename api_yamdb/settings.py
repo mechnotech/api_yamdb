@@ -15,8 +15,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework',
     'corsheaders',
+    'users',
     'api',
-    # 'users',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +58,7 @@ DATABASES = {
     }
 }
 
-# AUTH_USER_MODEL = 'users.YamUser'
+AUTH_USER_MODEL = 'users.YamUser'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
