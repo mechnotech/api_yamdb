@@ -1,6 +1,8 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from pytils.translit import slugify
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class BaseCatalog(models.Model):
