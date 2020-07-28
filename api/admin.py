@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Title, Category, Genre
+from .models import Title, Category, Genre, Review, Comment
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -21,7 +21,22 @@ class CategoryAdmin(BaseAdmin):
 class GenreAmdin(BaseAdmin):
     pass
 
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'title', 'author', 'text', 'pub_date', 'score')
+    search_fields = ('text',)
+    list_filter = ('pub_date', 'score',)
+    empty_value_display = '-пусто-'
 
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'review', 'author', 'text', 'pub_date')
+    search_fields = ('text',)
+    list_filter = ('pub_date', 'author',)
+    empty_value_display = '-пусто-'
+
+
+admin.site.register(Review, ReviewAdmin)
+admin.site.register(Comment, CommentAdmin)
 admin.site.register(Genre, GenreAmdin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Title, TitlesAdmin)
