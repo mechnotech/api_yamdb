@@ -9,11 +9,11 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
 
-class ReviewsViewSet(viewsets.GenericViewSet):
+class ReviewsViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
 
-class CommentsViewSet(viewsets.GenericViewSet):
+class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CategorySerializer
