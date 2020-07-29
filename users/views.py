@@ -2,20 +2,30 @@ from random import randint
 
 from django.core.mail import send_mail
 from django.db.models import ObjectDoesNotExist
-from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status, viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import YamUser
+from users.permissions import IsAdmin
 from users.serializers import YamRegUserSerializer, YamUsersSerializer, TokenSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdmin,)
     queryset = YamUser.objects.all()
     serializer_class = YamUsersSerializer
+
+
+class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAdmin,)
+    pagination_class = None
+    queryset = YamUser.objects.all()
+    lookup_field = 'username'
+    serializer_class = YamUsersSerializer
+
+
 
 
 class EmailConfirmationCode(APIView):
