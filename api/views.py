@@ -1,11 +1,10 @@
-from rest_framework import viewsets, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
 
 from .models import Category, Genre, Title, Review, Comment
 from .serializers import CategorySerializer, GenreSerializer, TitleSerializer, ReviewSerializer, CommentSerializer
 
 
-class CategoriesViewSet(generics.ListAPIView):
+class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
