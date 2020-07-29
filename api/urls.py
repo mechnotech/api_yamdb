@@ -1,15 +1,16 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from .views import CategoriesViewSet
 
-router = DefaultRouter()
+users_router_v1 = DefaultRouter()
 
-router.register('categories', CategoriesViewSet, basename='categories')
+users_router_v1.register('categories', CategoriesViewSet, basename='categories')
 
 # urlpatterns = [
 #     path('v1/', include('users.urls')),
 # ]
 
 urlpatterns = [
-    path('v1/', include(router.urls))
+    path('v1/', include(users_router_v1.urls))
 ]

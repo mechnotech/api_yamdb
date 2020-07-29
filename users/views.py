@@ -2,74 +2,81 @@ from random import randint
 
 from django.core.mail import send_mail
 from django.db.models import ObjectDoesNotExist
-from rest_framework import status, viewsets, generics
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import NotAcceptable
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import YamUser
 from users.permissions import IsAdmin
-from users.serializers import YamRegUserSerializer, YamUsersSerializer, TokenSerializer
+from users.serializers import YamUsersSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     queryset = YamUser.objects.all()
     serializer_class = YamUsersSerializer
-
-
-class UserViewSet(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAdmin,)
-    pagination_class = None
-    queryset = YamUser.objects.all()
     lookup_field = 'username'
-    serializer_class = YamUsersSerializer
 
 
+@api_view(['GET', 'PUT', 'PATCH', ])
+@permission_classes((IsAuthenticated, ))
+def user_self_view(request):
+    user = get_object_or_404(YamUser, id=request.user.id)
 
+    if request.method == 'GET':
+        serializer = YamUsersSerializer(user)
+        return Response(serializer.data)
 
-class EmailConfirmationCode(APIView):
-    # permission_classes = [permissions.IsAuthenticated]
-
-    # def get(self, request, format=None):
-    #     polls = Poll.objects.all()
-    #     serializer = PollSerializer(polls, many=True)
-    #     return Response(serializer.data)
-
-    def post(self, request):
-        email = request.data['email']
-        serializer = YamRegUserSerializer(data={'email': email})
-
+    elif request.method == 'PUT' or request.method == 'PATCH':
+        serializer = YamUsersSerializer(user,
+                                        data=request.data, partial=True)
         if serializer.is_valid():
-            code = randint(100000, 999999)
-            serializer.save(username=email, code=code)
-            send_mail(
-                'Confirmation Code',
-                f'Hi, there. This is your code: {code}',
-                'security@yamdb.fake',
-                [email],
-                fail_silently=False,
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class Token(APIView):
-    def post(self, request):
-        email = request.data['email']
-        code = int(request.data['code'])
+@api_view(('POST', ))
+def email_code(request):
+    data = {
+        'email': request.data.get('email'),
+        'username': request.data.get('email'),
+    }
 
-        try:
-            user = YamUser.objects.get(email=email)
-        except ObjectDoesNotExist:
-            user = None
+    serializer = YamUsersSerializer(data=data)
 
-        serializer = TokenSerializer(user, data=request.data)
-        serializer.is_valid()
-        if user is not None:
-            if user.code == code:
-                refresh = RefreshToken.for_user(user)
-                return Response(data={'token': str(refresh.access_token)}, status=status.HTTP_200_OK)
+    if serializer.is_valid():
+        code = randint(100000, 999999)
+        serializer.save(code=code)
+        send_mail(
+            'Confirmation Code',
+            f'Hi, there. This is your code: {code}',
+            'security@yamdb.fake',
+            data['email'],
+            fail_silently=False,
+        )
+        return Response({serializer.data['email']},
+                        status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(data={'error': 'error', 'email': email, 'code': code}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(('POST', ))
+def get_token(request):
+    email = request.data['email']
+    code = int(request.data['code'])
+
+    try:
+        user = YamUser.objects.get(email=email)
+    except ObjectDoesNotExist:
+        raise NotAcceptable(detail='No such e-mail')
+
+    if user.code == code:
+        refresh = RefreshToken.for_user(user)
+        return Response(data={'token': str(refresh.access_token)},
+                        status=status.HTTP_200_OK)
+
+    raise NotAcceptable(detail='error code')
