@@ -1,10 +1,7 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from pytils.translit import slugify
-
-
-from django.conf import settings
-
 
 User = settings.AUTH_USER_MODEL
 
@@ -48,17 +45,14 @@ class Title(models.Model):
         related_name='titles')
     genre = models.ManyToManyField(
         Genre,
-        blank=True,
-        null=True,
         verbose_name='Жанры')
 
     def __str__(self):
         return f'{self.name} ({self.year}г.)'
 
     class Meta:
-        #TODO: ХЗ как назвать правильно, переименовать потом
-        verbose_name = 'Титл'
-        verbose_name_plural = 'Титлы'
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
 
 class Review(models.Model):
