@@ -16,4 +16,5 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = CommentSerializer
+    
