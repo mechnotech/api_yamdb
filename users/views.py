@@ -67,7 +67,7 @@ def email_code(request):
 @api_view(('POST', ))
 def get_token(request):
     email = request.data['email']
-    code = int(request.data['code'])
+    code = int(request.data['confirmation_code'])
 
     try:
         user = YamUser.objects.get(email=email)
