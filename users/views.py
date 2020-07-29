@@ -56,7 +56,7 @@ def email_code(request):
             'Confirmation Code',
             f'Hi, there. This is your code: {code}',
             'security@yamdb.fake',
-            data['email'],
+            (data['email'],),
             fail_silently=False,
         )
         return Response({serializer.data['email']},
