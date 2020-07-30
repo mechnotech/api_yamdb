@@ -85,7 +85,11 @@ class Review(models.Model):
         return f'Отзыв {self.author} на {self.title}'
 
     class Meta:
-        unique_together = ('title', 'author')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique review')
+        ]
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
 
