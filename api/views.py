@@ -5,7 +5,7 @@ from django.db.models import Avg
 from rest_framework import filters, viewsets
 
 from .models import Category, Genre, Title, Review, Comment
-from .serializers import CategorySerializer, GenreSerializer, TitleSerializer, ReviewSerializer, CommentSerializer
+from .serializers import CategorySerializer, GenreSerializer, TitleListSerializer, TitlePostSerializer, ReviewSerializer, CommentSerializer
 from users.permissions import IsAdmin, IsOwnerOrReadOnly, IsSelfOrAdmin
 
 from .models import Category, Genre, Title
@@ -45,6 +45,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = [IsOwnerOrReadOnly]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -58,6 +59,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    #permission_classes = [IsOwnerOrReadOnly, ]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -69,5 +71,5 @@ class CommentsViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         reviews = Review.objects.filter(title=title)
-        review = get_object_or_404(reviews, pk=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
