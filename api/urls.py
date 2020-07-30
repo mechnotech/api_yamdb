@@ -10,12 +10,12 @@ users_router_v1.register('categories', CategoriesViewSet, basename='categories')
 users_router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewsViewSet,
-    basename='title_reviews'
+    basename='reviews'
 )
 users_router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentsViewSet,
-    basename='review_comments'
+    basename='comments'
 )
 # urlpatterns = [
 #     path('v1/', include('users.urls')),

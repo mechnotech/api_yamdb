@@ -69,6 +69,7 @@ class Review(models.Model):
     )
     score = models.PositiveIntegerField(
         'Оценка от 1 до 10',
+        null=False,
         default=5,
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
@@ -82,6 +83,7 @@ class Review(models.Model):
         return f'Отзыв {self.author} на {self.title}'
 
     class Meta:
+        unique_together = ('title', 'author')
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
 
@@ -97,7 +99,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField()
+    text = models.TextField('Комментарий')
     pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
