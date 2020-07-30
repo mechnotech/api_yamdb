@@ -82,6 +82,7 @@ class Review(models.Model):
         return f'Отзыв {self.author} на {self.title}'
 
     class Meta:
+        unique_together = ('title', 'author')
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
 
@@ -97,7 +98,7 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField()
+    text = models.TextField('Комментарий')
     pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
