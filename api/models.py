@@ -63,7 +63,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    text = models.TextField()
+    text = models.TextField('Отзыв')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -71,6 +71,7 @@ class Review(models.Model):
     )
     score = models.PositiveIntegerField(
         'Оценка от 1 до 10',
+        null=False,
         default=5,
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
@@ -79,6 +80,18 @@ class Review(models.Model):
         auto_now_add=True,
         db_index=True
     )
+
+    def __str__(self):
+        return f'Отзыв {self.author} на {self.title}'
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique review')
+        ]
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
 
 
 class Comment(models.Model):
@@ -92,9 +105,16 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField()
+    text = models.TextField('Комментарий')
     pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
         db_index=True
     )
+
+    def __str__(self):
+        return f'Комментарий {self.author} к {self.review}'
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
