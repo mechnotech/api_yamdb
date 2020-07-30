@@ -1,49 +1,54 @@
-from rest_framework import viewsets, status
+from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, \
-    IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
-from django.db.models import Avg
-from rest_framework import filters, viewsets
+from rest_framework.permissions import (IsAuthenticatedOrReadOnly)
+from rest_framework.viewsets import GenericViewSet
 
-from .models import Category, Genre, Title, Review, Comment
-from .serializers import CategorySerializer, GenreSerializer, TitleListSerializer, TitlePostSerializer, ReviewSerializer, CommentSerializer
-from users.permissions import IsAdmin, IsOwnerOrReadOnly, IsModerator, IsOwner
-
-from .models import Category, Genre, Title
-
+from users.permissions import (IsAdmin, IsAdminOrReadOnly, IsModerator,
+                               IsOwnerOrReadOnly, IsOwner)
+from .filters import TitleFilter
+from .models import Category, Genre, Review, Title
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleListSerializer, TitlePostSerializer)
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin,
+                        mixins.ListModelMixin,
+                        GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdmin, ]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
     search_fields = ['=name']
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin,
+                    mixins.ListModelMixin,
+                    GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdmin, ]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter]
+    lookup_field = 'slug'
     search_fields = ['=name']
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['=name', '=year', '=genre__slug', '=category__slug']
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
             return TitleListSerializer
         return TitlePostSerializer
-#TODO:
-''' что-то не так с фильтрами
-   AssertionError: Проверьте, что при GET запросе `/api/v1/titles/` 
-   фильтуется по `genre` параметру `slug` жанра '''
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
