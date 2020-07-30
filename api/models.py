@@ -8,7 +8,7 @@ User = settings.AUTH_USER_MODEL
 
 class BaseCatalog(models.Model):
     name = models.CharField(max_length=250, verbose_name='Название')
-    slug = models.SlugField(verbose_name='SLUG', null=True, blank=True)
+    slug = models.SlugField(verbose_name='SLUG', null=True, blank=True, unique=True)
 
     def __str__(self):
         return self.name
@@ -45,7 +45,9 @@ class Title(models.Model):
         related_name='titles')
     genre = models.ManyToManyField(
         Genre,
-        verbose_name='Жанры')
+        verbose_name='Жанры',
+        related_name='titles')
+    description = models.TextField(null=True)
 
     def __str__(self):
         return f'{self.name} ({self.year}г.)'
