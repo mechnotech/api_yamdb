@@ -11,7 +11,7 @@ class YamUser(AbstractUser):
 
     email = models.EmailField('email address', unique=True)
     bio = models.TextField(blank=True, null=True)
-    code = models.IntegerField(blank=True, null=True)
+    code = models.CharField(blank=True, null=True, max_length=100)
     role = models.CharField(
         max_length=9,
         choices=ROLES,

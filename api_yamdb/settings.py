@@ -109,3 +109,5 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=100500),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=100500),
 }
+
+DEFAULT_FROM_EMAIL = 'Почтовая служба <postmaster@yamdb.ru'

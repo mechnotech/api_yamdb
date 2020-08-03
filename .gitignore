@@ -17,4 +17,4 @@ __pycache__/
 media/
 sent_emails/
 
-db.sqlite3
+db.sqlite3.copy2
