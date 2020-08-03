@@ -15,10 +15,14 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           TitleListSerializer, TitlePostSerializer)
 
 
-class CategoriesViewSet(mixins.CreateModelMixin,
-                        mixins.DestroyModelMixin,
-                        mixins.ListModelMixin,
-                        GenericViewSet):
+class CatalogViewSet(mixins.CreateModelMixin,
+                     mixins.DestroyModelMixin,
+                     mixins.ListModelMixin,
+                     GenericViewSet):
+    pass
+
+
+class CategoriesViewSet(CatalogViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -27,10 +31,7 @@ class CategoriesViewSet(mixins.CreateModelMixin,
     search_fields = ['=name']
 
 
-class GenresViewSet(mixins.CreateModelMixin,
-                    mixins.DestroyModelMixin,
-                    mixins.ListModelMixin,
-                    GenericViewSet):
+class GenresViewSet(CatalogViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
