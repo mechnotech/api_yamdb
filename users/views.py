@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.db.models import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, action
 from rest_framework.exceptions import NotAcceptable
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -22,22 +22,22 @@ class UsersViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
 
 
-@api_view(['GET', 'PUT', 'PATCH', ])
-@permission_classes((IsAuthenticated,))
-def user_self_view(request):
-    user = get_object_or_404(YamUser, id=request.user.id)
+    @action(detail=False, methods=('GET', 'PATCH'),
+            permission_classes=(IsAuthenticated, ))
+    def me(self, request):
+        user = get_object_or_404(YamUser, id=request.user.id)
 
-    if request.method == 'GET':
-        serializer = YamUsersSerializer(user)
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = YamUsersSerializer(user)
+            return Response(serializer.data)
 
-    elif request.method == 'PUT' or request.method == 'PATCH':
-        serializer = YamUsersSerializer(user,
-                                        data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'PATCH':
+            serializer = YamUsersSerializer(user,
+                                            data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(('POST',))
