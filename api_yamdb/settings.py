@@ -110,4 +110,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=100500),
 }
 
-DEFAULT_FROM_EMAIL = 'Почтовая служба <postmaster@yamdb.ru'
+DEFAULT_FROM_EMAIL = 'Почтовая служба <postmaster@yamdb.ru>'
+MAIL_SUBJECT = 'Confirmation Code'
+MAIL_TEXT = 'Hi, there. This is your code: '

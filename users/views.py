@@ -51,12 +51,12 @@ def email_code(request):
 
     if serializer.is_valid():
         user = serializer.save()
-        token = default_token_generator.make_token(user)
+        confirmation_code = default_token_generator.make_token(user)
         send_mail(
-            'Confirmation Code',
-            f'Hi, there. This is your code: {token}',
-            settings.DEFAULT_FROM_EMAIL,
-            (data['email'],),
+            subject=settings.MAIL_SUBJECT,
+            message=f'{settings.MAIL_TEXT}{confirmation_code}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=(data['email'],),
             fail_silently=False,
         )
         return Response({serializer.data['email']},
@@ -67,14 +67,14 @@ def email_code(request):
 @api_view(('POST',))
 def get_token(request):
     email = request.data['email']
-    token = request.data['confirmation_code']
+    confirmation_code = request.data['confirmation_code']
 
     try:
         user = YamUser.objects.get(email=email)
     except ObjectDoesNotExist:
         raise NotAcceptable(detail='No such e-mail')
 
-    if default_token_generator.check_token(user, token):
+    if default_token_generator.check_token(user, confirmation_code):
         refresh = RefreshToken.for_user(user)
         return Response(data={'token': str(refresh.access_token)},
                         status=status.HTTP_200_OK)
