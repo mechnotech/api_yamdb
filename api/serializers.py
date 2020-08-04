@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from .models import Category, Comment, Genre, Review, Title
+from api.models import Category, Comment, Genre, Review, Title
+from users.models import YamUser
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -62,3 +63,12 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'author', 'text', 'pub_date',)
+
+
+class YamUsersSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = YamUser
+        fields = (
+            "first_name", "last_name",
+            "username", "bio", "email", "role")
