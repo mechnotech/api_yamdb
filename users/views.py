@@ -11,12 +11,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import YamUser
-from users.permissions import IsAdmin
+from users.permissions import IsAdminOrStaff
 from users.serializers import YamUsersSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminOrStaff,)
     queryset = YamUser.objects.all()
     serializer_class = YamUsersSerializer
     lookup_field = 'username'

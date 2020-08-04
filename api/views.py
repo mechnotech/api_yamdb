@@ -3,11 +3,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import (IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from users.permissions import (IsAdmin, IsAdminOrReadOnly, IsModerator,
-                               IsOwnerOrReadOnly)
+from users.permissions import IsAdminOrStaff, IsModerator, IsOwner, ReadOnly
+
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -19,30 +19,25 @@ class CatalogViewSet(mixins.CreateModelMixin,
                      mixins.DestroyModelMixin,
                      mixins.ListModelMixin,
                      GenericViewSet):
-    pass
+    permission_classes = [IsAdminOrStaff | ReadOnly]
+    lookup_field = 'slug'
+    search_fields = ['=name']
+    filter_backends = [filters.SearchFilter]
 
 
 class CategoriesViewSet(CatalogViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    lookup_field = 'slug'
-    search_fields = ['=name']
 
 
 class GenresViewSet(CatalogViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter]
-    lookup_field = 'slug'
-    search_fields = ['=name']
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrStaff | ReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
 
@@ -54,8 +49,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly |
-                          IsAdmin | IsModerator]
+    permission_classes = [IsAuthenticated | ReadOnly, IsOwner | ReadOnly |
+                          IsAdminOrStaff | IsModerator]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -72,8 +67,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly |
-                          IsAdmin | IsModerator]
+    permission_classes = [IsAuthenticated | ReadOnly, IsOwner | ReadOnly |
+                          IsAdminOrStaff | IsModerator]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
