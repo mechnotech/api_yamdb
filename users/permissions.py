@@ -26,7 +26,7 @@ class IsModerator(permissions.BasePermission):
                 and request.user.role == Roles.MODERATOR)
 
 
-class IsAdmin(permissions.BasePermission):
+class IsAdminOrStaff(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.user.is_authenticated
                 and (request.user.role == Roles.ADMIN
