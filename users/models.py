@@ -11,7 +11,6 @@ class Roles(models.TextChoices):
 class YamUser(AbstractUser):
     email = models.EmailField('email address', unique=True)
     bio = models.TextField(blank=True, null=True)
-    code = models.IntegerField(blank=True, null=True)
     role = models.CharField(
         max_length=200,
         default=Roles.USER,
