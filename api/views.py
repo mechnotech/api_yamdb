@@ -16,7 +16,8 @@ from api.models import Category, Genre, Review, Title
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleListSerializer, TitlePostSerializer,
-                             YamUsersSerializer)
+                             YamUsersSerializer, RequestCodeSerializer,
+                             GetTokenSerializer)
 from api_yamdb import settings
 from users.models import YamUser
 from users.permissions import IsAdminOrStaff, IsModerator, IsOwner, ReadOnly
@@ -120,13 +121,15 @@ class UsersViewSet(viewsets.ModelViewSet):
 def email_code(request):
     data = {
         'email': request.data.get('email'),
-        'username': f'newuser_{YamUser.objects.count()}',
     }
 
-    serializer = YamUsersSerializer(data=data)
+    serializer = RequestCodeSerializer(data=data)
 
     if serializer.is_valid():
-        user = serializer.save()
+        user = YamUser.objects.create(
+            username=f'newuser_{YamUser.objects.count()}',
+            email=data['email']
+        )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject=settings.MAIL_SUBJECT,
@@ -142,17 +145,17 @@ def email_code(request):
 
 @api_view(('POST',))
 def get_token(request):
-    email = request.data['email']
-    confirmation_code = request.data['confirmation_code']
+    data = {
+        'email': request.data['email'],
+        'confirmation_code': request.data['confirmation_code']
+    }
 
-    try:
-        user = YamUser.objects.get(email=email)
-    except ObjectDoesNotExist:
-        raise NotAcceptable(detail='No such e-mail')
+    serializer = GetTokenSerializer(data=data)
 
-    if default_token_generator.check_token(user, confirmation_code):
-        refresh = RefreshToken.for_user(user)
-        return Response(data={'token': str(refresh.access_token)},
-                        status=status.HTTP_200_OK)
-
+    if serializer.is_valid():
+        user = YamUser.objects.get(email=data['email'])
+        if default_token_generator.check_token(user, data['confirmation_code']):
+            refresh = RefreshToken.for_user(user)
+            return Response(data={'token': str(refresh.access_token)},
+                            status=status.HTTP_200_OK)
     raise NotAcceptable(detail='error code')
