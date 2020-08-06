@@ -67,9 +67,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        if Review.objects.filter(author=self.request.user,
-                                 title=title).exists():
-            raise ValidationError('Object exist!')
         serializer.save(author=self.request.user, title=title)
 
 
