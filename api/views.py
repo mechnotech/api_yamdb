@@ -1,11 +1,12 @@
+from datetime import datetime
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db.models import Avg, ObjectDoesNotExist
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import NotAcceptable
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -16,7 +17,7 @@ from api.models import Category, Genre, Review, Title
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleListSerializer, TitlePostSerializer,
-                             YamUsersSerializer, RequestCodeSerializer,
+                             YamUsersSerializer,
                              GetTokenSerializer)
 from api_yamdb import settings
 from users.models import YamUser
@@ -153,13 +154,16 @@ def get_token(request):
     }
 
     serializer = GetTokenSerializer(data=data)
-    user = YamUser.objects.get(email=data['email'])
-    if default_token_generator.check_token(user, data['confirmation_code'])
-        access_token = AccessToken.for_user(user)
-        return Response(data={'token': str(access_token)},
-                        status=status.HTTP_200_OK)
+    if serializer.is_valid(raise_exception=True):
+        user = get_object_or_404(YamUser, email=data['email'])
+        if default_token_generator.check_token(
+                user,
+                data['confirmation_code']):
+            access_token = AccessToken.for_user(user)
+            return Response(data={'token': str(access_token)},
+                            status=status.HTTP_200_OK)
 
-    return Response(
-        data={'confirmation_code': 'wrong code'},
-        status=status.HTTP_400_BAD_REQUEST
-    )
+        return Response(
+            data={'confirmation_code': 'wrong code'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
