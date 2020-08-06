@@ -76,11 +76,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class GetTokenSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    confirmation_code = serializers.CharField()
-
-
-class RequestCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    confirmation_code = serializers.SlugField()
 
 
 class YamUsersSerializer(serializers.ModelSerializer):
