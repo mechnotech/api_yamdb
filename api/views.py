@@ -131,7 +131,7 @@ def email_code(request):
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject=settings.MAIL_SUBJECT,
-            message=f'{settings.MAIL_TEXT}{confirmation_code}',
+            message=settings.MAIL_TEXT.format(confirmation_code),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=(data['email'],),
             fail_silently=False,
