@@ -84,7 +84,6 @@ class CommentsViewSet(viewsets.ModelViewSet):
         return self.queryset
 
     def perform_create(self, serializer):
-
         review = get_object_or_404(
             Review.objects.filter(title_id=self.kwargs.get('title_id')),
             pk=self.kwargs.get('review_id')
