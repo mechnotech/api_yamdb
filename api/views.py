@@ -5,11 +5,11 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import NotAcceptable, ValidationError
+from rest_framework.exceptions import NotAcceptable
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
 from api.models import Category, Genre, Review, Title
@@ -56,6 +56,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
+    queryset = None
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated | ReadOnly, IsOwner | ReadOnly |
                           IsAdminOrStaff | IsModerator]
@@ -67,9 +68,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        if Review.objects.filter(author=self.request.user,
-                                 title=title).exists():
-            raise ValidationError('Object exist!')
         serializer.save(author=self.request.user, title=title)
 
 
@@ -79,16 +77,18 @@ class CommentsViewSet(viewsets.ModelViewSet):
                           IsAdminOrStaff | IsModerator]
 
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        reviews = Review.objects.filter(title=title)
-        review = get_object_or_404(reviews, pk=self.kwargs.get('review_id'))
-        self.queryset = review.comments.all()
+        comments = get_object_or_404(
+            Review.objects.filter(title_id=self.kwargs.get('title_id')),
+            pk=self.kwargs.get('review_id')
+        ).comments.all()
+        self.queryset = comments
         return self.queryset
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        reviews = Review.objects.filter(title=title)
-        review = get_object_or_404(reviews, pk=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            Review.objects.filter(title_id=self.kwargs.get('title_id')),
+            pk=self.kwargs.get('review_id')
+        )
         serializer.save(author=self.request.user, review=review)
 
 
@@ -133,7 +133,7 @@ def email_code(request):
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject=settings.MAIL_SUBJECT,
-            message=f'{settings.MAIL_TEXT}{confirmation_code}',
+            message=settings.MAIL_TEXT.format(confirmation_code),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=(data['email'],),
             fail_silently=False,

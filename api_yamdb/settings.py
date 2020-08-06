@@ -112,4 +112,4 @@ SIMPLE_JWT = {
 
 DEFAULT_FROM_EMAIL = 'Почтовая служба <postmaster@yamdb.ru>'
 MAIL_SUBJECT = 'Confirmation Code'
-MAIL_TEXT = 'Hi, there. This is your code: '
+MAIL_TEXT = 'Hi, there. This is your code: {0} \nYaMDB Team'

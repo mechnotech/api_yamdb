@@ -77,7 +77,10 @@ class Review(models.Model):
         'Оценка от 1 до 10',
         null=False,
         default=5,
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=(
+            MinValueValidator(1, message='Не меньше 1'),
+            MaxValueValidator(10, message='Не больше 10')
+        )
     )
     pub_date = models.DateTimeField(
         'Дата добавления',
