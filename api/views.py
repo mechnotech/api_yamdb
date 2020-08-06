@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg, ObjectDoesNotExist
@@ -97,47 +99,51 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = YamUsersSerializer
     lookup_field = 'username'
 
-    @action(detail=False, methods=('GET', 'PATCH'),
-            permission_classes=(IsAuthenticated,))
+    @action(
+        detail=False,
+        methods=('GET', 'PATCH'),
+        permission_classes=(IsAuthenticated,)
+    )
     def me(self, request):
-        user = get_object_or_404(YamUser, id=request.user.id)
-
         if request.method == 'GET':
-            serializer = YamUsersSerializer(user)
+            serializer = YamUsersSerializer(request.user)
             return Response(serializer.data)
 
         if request.method == 'PATCH':
-            serializer = YamUsersSerializer(user,
-                                            data=request.data, partial=True)
-            if serializer.is_valid():
+            serializer = YamUsersSerializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(('POST',))
 def email_code(request):
     data = {
         'email': request.data.get('email'),
-        'username': f'newuser_{YamUser.objects.count()}',
+        'username': f'newuser_{datetime.timestamp(datetime.now())}',
     }
 
-    serializer = YamUsersSerializer(data=data)
-
-    if serializer.is_valid():
-        user = serializer.save()
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            subject=settings.MAIL_SUBJECT,
-            message=f'{settings.MAIL_TEXT}{confirmation_code}',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=(data['email'],),
-            fail_silently=False,
+    user = YamUser.objects.filter(email=data['email']).first()
+    if user:
+        serializer = YamUsersSerializer(user)
+    else:
+        serializer = YamUsersSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject=settings.MAIL_SUBJECT,
+        message=f'{settings.MAIL_TEXT}{confirmation_code}',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=(data['email'],),
+        fail_silently=False,
         )
-        return Response({serializer.data['email']},
-                        status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'email': serializer.data['email']},
+                    status=status.HTTP_201_CREATED)
 
 
 @api_view(('POST',))
@@ -155,4 +161,7 @@ def get_token(request):
         return Response(data={'token': str(refresh.access_token)},
                         status=status.HTTP_200_OK)
 
-    raise NotAcceptable(detail='error code')
+    return Response(
+        data={'confirmation_code': 'wrong code'},
+        status=status.HTTP_400_BAD_REQUEST
+    )
