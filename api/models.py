@@ -74,16 +74,16 @@ class Review(models.Model):
         'Оценка от 1 до 10',
         null=False,
         default=5,
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=(
+            MinValueValidator(1, message='Не меньше 1'),
+            MaxValueValidator(10, message='Не больше 10')
+        )
     )
     pub_date = models.DateTimeField(
         'Дата добавления',
         auto_now_add=True,
         db_index=True
     )
-
-    def __str__(self):
-        return f'Отзыв {self.author} на {self.title}'
 
     class Meta:
         constraints = [
@@ -93,6 +93,9 @@ class Review(models.Model):
         ]
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+
+    def __str__(self):
+        return f'Отзыв {self.author} на {self.title}'
 
 
 class Comment(models.Model):
@@ -113,9 +116,9 @@ class Comment(models.Model):
         db_index=True
     )
 
-    def __str__(self):
-        return f'Комментарий {self.author} к {self.review}'
-
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return f'Комментарий {self.author} к {self.review}'
