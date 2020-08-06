@@ -5,11 +5,11 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import NotAcceptable, ValidationError
+from rest_framework.exceptions import NotAcceptable
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
 from api.models import Category, Genre, Review, Title
@@ -152,8 +152,8 @@ def get_token(request):
         raise NotAcceptable(detail='No such e-mail')
 
     if default_token_generator.check_token(user, confirmation_code):
-        refresh = RefreshToken.for_user(user)
-        return Response(data={'token': str(refresh.access_token)},
+        access_token = AccessToken.for_user(user)
+        return Response(data={'token': str(access_token)},
                         status=status.HTTP_200_OK)
 
     raise NotAcceptable(detail='error code')
