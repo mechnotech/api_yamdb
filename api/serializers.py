@@ -74,6 +74,15 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'text', 'pub_date',)
 
 
+class GetTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    confirmation_code = serializers.CharField()
+
+
+class RequestCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class YamUsersSerializer(serializers.ModelSerializer):
 
     class Meta:

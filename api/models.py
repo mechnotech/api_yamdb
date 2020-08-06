@@ -36,7 +36,10 @@ class Category(BaseCatalog):
 
 class Title(models.Model):
     name = models.CharField(max_length=250, verbose_name='Название')
-    year = models.IntegerField(verbose_name='Год', null=True, blank=True)
+    year = models.IntegerField(verbose_name='Год',
+                               null=True,
+                               blank=True,
+                               db_index=True)
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
@@ -50,12 +53,12 @@ class Title(models.Model):
         related_name='titles')
     description = models.TextField(null=True)
 
-    def __str__(self):
-        return f'{self.name} ({self.year}г.)'
-
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+
+    def __str__(self):
+        return f'{self.name} ({self.year}г.)'
 
 
 class Review(models.Model):

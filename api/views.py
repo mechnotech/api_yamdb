@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg, ObjectDoesNotExist
@@ -18,7 +16,8 @@ from api.models import Category, Genre, Review, Title
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleListSerializer, TitlePostSerializer,
-                             YamUsersSerializer)
+                             YamUsersSerializer, RequestCodeSerializer,
+                             GetTokenSerializer)
 from api_yamdb import settings
 from users.models import YamUser
 from users.permissions import IsAdminOrStaff, IsModerator, IsOwner, ReadOnly
@@ -148,15 +147,14 @@ def email_code(request):
 
 @api_view(('POST',))
 def get_token(request):
-    email = request.data['email']
-    confirmation_code = request.data['confirmation_code']
+    data = {
+        'email': request.data['email'],
+        'confirmation_code': request.data['confirmation_code']
+    }
 
-    try:
-        user = YamUser.objects.get(email=email)
-    except ObjectDoesNotExist:
-        raise NotAcceptable(detail='No such e-mail')
-
-    if default_token_generator.check_token(user, confirmation_code):
+    serializer = GetTokenSerializer(data=data)
+    user = YamUser.objects.get(email=data['email'])
+    if default_token_generator.check_token(user, data['confirmation_code'])
         access_token = AccessToken.for_user(user)
         return Response(data={'token': str(access_token)},
                         status=status.HTTP_200_OK)
